@@ -68,8 +68,9 @@ public class PersistitClient extends DB
      */
     public void init() throws DBException
     {
-        verbose = Boolean.parseBoolean(getProperties().getProperty(VERBOSE, VERBOSE_DEFAULT));
-        todelay = Integer.parseInt(getProperties().getProperty(SIMULATE_DELAY, SIMULATE_DELAY_DEFAULT));
+        Properties props = getProperties();
+        verbose = Boolean.parseBoolean(props.getProperty(VERBOSE, VERBOSE_DEFAULT));
+        todelay = Integer.parseInt(props.getProperty(SIMULATE_DELAY, SIMULATE_DELAY_DEFAULT));
 
         if (verbose)
         {
@@ -86,24 +87,9 @@ public class PersistitClient extends DB
             System.out.println("**********************************************");
         }
 
-        int bsize = Integer.getInteger("bsize", 16384);
-        int bcount = Integer.getInteger("bcount", 500);
 
         db = new Persistit();
         
-        Properties props = new Properties();
-
-        props.setProperty("bsize", Integer.toString(bsize));
-        props.setProperty("bcount", Integer.toString(bcount));
-
-        props.setProperty("datapath", "/tmp/persistit");
-        props.setProperty("logfile", "/tmp/persistit/${timestamp}.log");
-        props.setProperty("journalpath", "/tmp/persistit/persistit_journal");
-        props.setProperty("buffer.count." + bsize, "${bcount}");
-        props.setProperty("volume.1", 
-                          "${datapath}/benchmark.v01," +
-                          "pageSize:${bsize},initialSize:100M,extensionSize:100M," +
-                          "maximumSize:100G,create");
         try
         {
             db.initialize(props);
@@ -111,6 +97,7 @@ public class PersistitClient extends DB
         }
         catch (final Exception e)
         {
+            e.printStackTrace();
             return;
         }
     }
