@@ -52,6 +52,7 @@
     <mongodb.version>2.7.2</mongodb.version>
     <redis.version>2.0.0</redis.version>
     <voldemort.version>0.81</voldemort.version>
+    <persistit.version>3.1.0-SNAPSHOT</persistit.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
@@ -68,6 +69,7 @@
     <!--module>nosqldb</module-->
     <module>redis</module>
     <module>voldemort</module>
+    <module>persistit</module>
     <module>distribution</module>
   </modules>
 
