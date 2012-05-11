@@ -87,7 +87,7 @@ public class PersistitClient extends DB
         }
 
         int bsize = Integer.getInteger("bsize", 16384);
-        int bcount = Integer.getInteger("bcount", 75000);
+        int bcount = Integer.getInteger("bcount", 500);
 
         db = new Persistit();
         
