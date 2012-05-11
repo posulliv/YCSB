@@ -23,7 +23,7 @@ import com.persistit.Persistit;
 /**
  * Persistit DB implementation.
  */
-public class PersistitDB extends DB
+public class PersistitClient extends DB
 {
 
     public static final String VERBOSE = "persistitdb.verbose";
@@ -40,7 +40,7 @@ public class PersistitDB extends DB
     boolean verbose;
     int todelay;
 
-    public PersistitDB()
+    public PersistitClient()
     {
         random = new Random();
         todelay = 0;
