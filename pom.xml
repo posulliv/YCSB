@@ -53,6 +53,7 @@
     <redis.version>2.0.0</redis.version>
     <voldemort.version>0.81</voldemort.version>
     <persistit.version>3.1.0-SNAPSHOT</persistit.version>
+    <berkeley.version>5.0.48</berkeley.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
@@ -70,6 +71,7 @@
     <module>redis</module>
     <module>voldemort</module>
     <module>persistit</module>
+    <module>berkeley</module>
     <module>distribution</module>
   </modules>
 
