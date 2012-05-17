@@ -72,8 +72,9 @@ public class BerkeleyClient extends DB
      */
     public void init()
     {
-        verbose = Boolean.parseBoolean(getProperties().getProperty(VERBOSE, VERBOSE_DEFAULT));
-        todelay = Integer.parseInt(getProperties().getProperty(SIMULATE_DELAY, SIMULATE_DELAY_DEFAULT));
+        Properties props = getProperties();
+        verbose = Boolean.parseBoolean(props.getProperty(VERBOSE, VERBOSE_DEFAULT));
+        todelay = Integer.parseInt(props.getProperty(SIMULATE_DELAY, SIMULATE_DELAY_DEFAULT));
 
         if (verbose)
         {
@@ -94,7 +95,8 @@ public class BerkeleyClient extends DB
         {
             EnvironmentConfig envConfig = new EnvironmentConfig();
             envConfig.setAllowCreate(true);
-            envConfig.setCacheSize(1536000000);
+            //envConfig.setCacheSize(1536000000);
+            envConfig.setCachePercent(80);
             envConfig.setConfigParam(EnvironmentConfig.LOG_FILE_MAX, "1000000000");
             env = new Environment(new File("/tmp/berkeley"), envConfig);
             DatabaseConfig dbConfig = new DatabaseConfig();
