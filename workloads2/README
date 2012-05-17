@@ -1,0 +1,13 @@
+Copied from original workloads directory.
+Insert/Operations count for 10 byte 25M/2.5M
+Operations count for 100 byte 2.5M/1M
+Operations count for 1000 byte sequential/random loads remains 1M/.5M
+
+buffersize=16384
+# minimum, maximum, reserved, fraction.  Allocates:
+# ((available - reserved) * fraction) bounded by minimum and maximum
+buffer.memory.16384=20M,512G,64M,0.80
+datapath=/tmp/persistit
+logfile=/tmp/persistit/${timestamp}.log
+journalpath=/tmp/persistit/persistit_journal
+volume.1=${datapath}/benchmark.v01,pageSize:16384,initialSize:100M,extensionSize:100M,maximumSize:100G,create

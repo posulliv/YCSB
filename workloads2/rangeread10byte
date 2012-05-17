@@ -1,0 +1,35 @@
+# Yahoo! Cloud System Benchmark
+# Workload B: Read workload
+#                        
+#   insert order: sequential
+#   Read/update ratio: 100/0 (i.e. read-only)
+#   Default data size: 10 byte records (1 field, 10 bytes each, plus key)
+#   Request distribution: uniform
+
+recordcount=2500000
+operationcount=2500000
+workload=com.yahoo.ycsb.workloads.CoreWorkload
+insertorder=sequential
+
+readallfields=true
+
+readproportion=0
+updateproportion=0
+scanproportion=1
+insertproportion=0
+
+requestdistribution=uniform
+
+maxscanlength=50
+scanlengthdistribution=uniform
+
+fieldlength=10
+fieldcount=1
+buffersize=16384
+# minimum, maximum, reserved, fraction.  Allocates:
+# ((available - reserved) * fraction) bounded by minimum and maximum
+buffer.memory.16384=20M,512G,64M,0.80
+datapath=/tmp/persistit
+logfile=/tmp/persistit/${timestamp}.log
+journalpath=/tmp/persistit/persistit_journal
+volume.1=${datapath}/benchmark.v01,pageSize:16384,initialSize:100M,extensionSize:100M,maximumSize:100G,create

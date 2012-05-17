@@ -226,7 +226,7 @@ public class PersistitClient extends DB
             /* construct the value for this entry in persistit */
             String hash_map_string = values.toString();
             exchange.getValue().clear();
-            exchange.getValue().putUTF(hash_map_string);
+            exchange.getValue().put(hash_map_string);
             /* actually store the data */
             exchange.store();
         }
@@ -263,7 +263,7 @@ public class PersistitClient extends DB
             /* construct the value for this entry in persistit */
             String hash_map_string = values.toString();
             exchange.getValue().clear();
-            exchange.getValue().putUTF(hash_map_string);
+            exchange.getValue().put(hash_map_string);
             /* actually store the data */
             exchange.store();
         }
