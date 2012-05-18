@@ -162,7 +162,6 @@ public class PersistitClient extends DB
                     exchange.fetch();
                     String foundData = exchange.getValue().getString();
                     result.put("data", new StringByteIterator(foundData));
-                    txn.commit();
                 } catch (RollbackException re) {
                     return 1; /* rollback is fatal error for benchmark? */
                 } finally {
@@ -227,7 +226,6 @@ public class PersistitClient extends DB
                         result.add(tuple);
                         counter++;
                     }
-                    txn.commit();
                 } catch (RollbackException re) {
                     return 1;
                 } finally {
@@ -290,6 +288,7 @@ public class PersistitClient extends DB
                     exchange.getValue().put(hash_map_string);
                     /* actually store the data */
                     exchange.store();
+                    txn.commit();
                 } catch (RollbackException re) {
                     return 1;
                 } finally {
