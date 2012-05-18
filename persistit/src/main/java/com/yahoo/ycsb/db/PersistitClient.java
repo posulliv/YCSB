@@ -92,6 +92,7 @@ public class PersistitClient extends DB
         
         try
         {
+            System.out.println("Commit policy: " + props.getProperty("txnpolicy", "SOFT"));
             db.initialize(props);
             exchange = new Exchange(db, "benchmark", "tree1", true);
         }
