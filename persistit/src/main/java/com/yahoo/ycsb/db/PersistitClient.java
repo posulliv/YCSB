@@ -18,6 +18,8 @@ import com.yahoo.ycsb.StringByteIterator;
 import com.persistit.Exchange;
 import com.persistit.Key;
 import com.persistit.Persistit;
+import com.persistit.Transaction;
+import com.persistit.exception.RollbackException;
 
 
 /**
@@ -32,12 +34,16 @@ public class PersistitClient extends DB
     public static final String SIMULATE_DELAY = "persistitdb.simulatedelay";
     public static final String SIMULATE_DELAY_DEFAULT = "0";
 
+    public static final String EXPLICIT_TRX = "persistit.explicittrx";
+    public static final String EXPLICIT_TRX_DEFAULT = "false";
+
     private Persistit db;
 
     private Exchange exchange;
 
     Random random;
     boolean verbose;
+    boolean explicit_trx;
     int todelay;
 
     public PersistitClient()
@@ -45,6 +51,7 @@ public class PersistitClient extends DB
         random = new Random();
         todelay = 0;
         verbose = false;
+        explicit_trx = false;
     }
 
 
@@ -71,6 +78,7 @@ public class PersistitClient extends DB
         Properties props = getProperties();
         verbose = Boolean.parseBoolean(props.getProperty(VERBOSE, VERBOSE_DEFAULT));
         todelay = Integer.parseInt(props.getProperty(SIMULATE_DELAY, SIMULATE_DELAY_DEFAULT));
+        explicit_trx = Boolean.parseBoolean(props.getProperty(EXPLICIT_TRX, EXPLICIT_TRX_DEFAULT));
 
         if (verbose)
         {
@@ -144,11 +152,31 @@ public class PersistitClient extends DB
 
         try
         {
-            exchange.clear().to(key);
-            /* retrieve the data */
-            exchange.fetch();
-            String foundData = exchange.getValue().getString();
-            result.put("data", new StringByteIterator(foundData));
+            if (explicit_trx)
+            {
+                Transaction txn = exchange.getTransaction();
+                txn.begin();
+                try {
+                    exchange.clear().to(key);
+                    /* retrieve the data */
+                    exchange.fetch();
+                    String foundData = exchange.getValue().getString();
+                    result.put("data", new StringByteIterator(foundData));
+                    txn.commit();
+                } catch (RollbackException re) {
+                    return 1; /* rollback is fatal error for benchmark? */
+                } finally {
+                    txn.end();
+                }
+            } 
+            else
+            {
+                exchange.clear().to(key);
+                /* retrieve the data */
+                exchange.fetch();
+                String foundData = exchange.getValue().getString();
+                result.put("data", new StringByteIterator(foundData));
+            }
         }
         catch (final Exception e)
         {
@@ -182,17 +210,44 @@ public class PersistitClient extends DB
 
         try
         {
-            exchange.clear().to(startkey);
-            int counter = 0; /* keeps track of how many records we have scanned */
-            while (exchange.next() && counter <= recordcount)
+            if (explicit_trx)
             {
-                /* retrieve the data */
-                String foundData = exchange.getValue().getString();
-                HashMap<String, ByteIterator> tuple = new HashMap<String, ByteIterator>();
-                String key = "data" + counter;
-                tuple.put(key, new StringByteIterator(foundData));
-                result.add(tuple);
-                counter++;
+                Transaction txn = exchange.getTransaction();
+                txn.begin();
+                try {
+                    exchange.clear().to(startkey);
+                    int counter = 0; /* keeps track of how many records we have scanned */
+                    while (exchange.next() && counter <= recordcount)
+                    {
+                        /* retrieve the data */
+                        String foundData = exchange.getValue().getString();
+                        HashMap<String, ByteIterator> tuple = new HashMap<String, ByteIterator>();
+                        String key = "data" + counter;
+                        tuple.put(key, new StringByteIterator(foundData));
+                        result.add(tuple);
+                        counter++;
+                    }
+                    txn.commit();
+                } catch (RollbackException re) {
+                    return 1;
+                } finally {
+                    txn.end();
+                }
+            }
+            else
+            {
+                exchange.clear().to(startkey);
+                int counter = 0; /* keeps track of how many records we have scanned */
+                while (exchange.next() && counter <= recordcount)
+                {
+                    /* retrieve the data */
+                    String foundData = exchange.getValue().getString();
+                    HashMap<String, ByteIterator> tuple = new HashMap<String, ByteIterator>();
+                    String key = "data" + counter;
+                    tuple.put(key, new StringByteIterator(foundData));
+                    result.add(tuple);
+                    counter++;
+                }
             }
         }
         catch (final Exception e)
@@ -223,13 +278,34 @@ public class PersistitClient extends DB
 
         try
         {
-            exchange.clear().to(key);
-            /* construct the value for this entry in persistit */
-            String hash_map_string = values.toString();
-            exchange.getValue().clear();
-            exchange.getValue().put(hash_map_string);
-            /* actually store the data */
-            exchange.store();
+            if (explicit_trx)
+            {
+                Transaction txn = exchange.getTransaction();
+                txn.begin();
+                try {
+                    exchange.clear().to(key);
+                    /* construct the value for this entry in persistit */
+                    String hash_map_string = values.toString();
+                    exchange.getValue().clear();
+                    exchange.getValue().put(hash_map_string);
+                    /* actually store the data */
+                    exchange.store();
+                } catch (RollbackException re) {
+                    return 1;
+                } finally {
+                    txn.end();
+                }
+            }
+            else
+            {
+                exchange.clear().to(key);
+                /* construct the value for this entry in persistit */
+                String hash_map_string = values.toString();
+                exchange.getValue().clear();
+                exchange.getValue().put(hash_map_string);
+                /* actually store the data */
+                exchange.store();
+            }
         }
         catch (final Exception e)
         {
@@ -260,13 +336,35 @@ public class PersistitClient extends DB
 
         try
         {
-            exchange.clear().to(key);
-            /* construct the value for this entry in persistit */
-            String hash_map_string = values.toString();
-            exchange.getValue().clear();
-            exchange.getValue().put(hash_map_string);
-            /* actually store the data */
-            exchange.store();
+            if (explicit_trx)
+            {
+                Transaction txn = exchange.getTransaction();
+                txn.begin();
+                try {
+                    exchange.clear().to(key);
+                    /* construct the value for this entry in persistit */
+                    String hash_map_string = values.toString();
+                    exchange.getValue().clear();
+                    exchange.getValue().put(hash_map_string);
+                    /* actually store the data */
+                    exchange.store();
+                    txn.commit();
+                } catch (RollbackException re) {
+                    return 1;
+                } finally {
+                    txn.end();
+                }
+            }
+            else
+            {
+                exchange.clear().to(key);
+                /* construct the value for this entry in persistit */
+                String hash_map_string = values.toString();
+                exchange.getValue().clear();
+                exchange.getValue().put(hash_map_string);
+                /* actually store the data */
+                exchange.store();
+            }
         }
         catch (final Exception e)
         {
@@ -289,8 +387,25 @@ public class PersistitClient extends DB
 
         try
         {
-            exchange.clear().to(key);
-            exchange.remove();
+            if (explicit_trx)
+            {
+                Transaction txn = exchange.getTransaction();
+                txn.begin();
+                try {
+                    exchange.clear().to(key);
+                    exchange.remove();
+                    txn.commit();
+                } catch (RollbackException re) {
+                    return 1;
+                } finally {
+                    txn.end();
+                }
+            }
+            else
+            {
+                exchange.clear().to(key);
+                exchange.remove();
+            }
         }
         catch (final Exception e)
         {

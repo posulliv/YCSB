@@ -36,3 +36,4 @@ logfile=/tmp/persistit/${timestamp}.log
 journalpath=/tmp/persistit/persistit_journal
 volume.1=${datapath}/benchmark.v01,pageSize:16384,initialSize:100M,extensionSize:100M,maximumSize:100G,create
 txnpolicy=SOFT
+persistit.explicittrx=false
