@@ -36,12 +36,16 @@ public class BerkeleyClient extends DB
     public static final String SIMULATE_DELAY = "berkeleydb.simulatedelay";
     public static final String SIMULATE_DELAY_DEFAULT = "0";
 
+    public static final String DEFER_WRITES = "berkeleydb.deferwrites";
+    public static final String DEFER_WRITES_DEFAULT = "false";
+
     Environment env = null;
     Database db = null;
     Cursor cursor = null;
 
     Random random;
     boolean verbose;
+    boolean defer_writes;
     int todelay;
 
     public BerkeleyClient()
@@ -49,6 +53,7 @@ public class BerkeleyClient extends DB
         random = new Random();
         todelay = 0;
         verbose = false;
+        defer_writes = false;
     }
 
 
@@ -75,6 +80,7 @@ public class BerkeleyClient extends DB
         Properties props = getProperties();
         verbose = Boolean.parseBoolean(props.getProperty(VERBOSE, VERBOSE_DEFAULT));
         todelay = Integer.parseInt(props.getProperty(SIMULATE_DELAY, SIMULATE_DELAY_DEFAULT));
+        defer_writes = Boolean.parseBoolean(props.getProperty(DEFER_WRITES, DEFER_WRITES_DEFAULT));
 
         if (verbose)
         {
@@ -101,6 +107,10 @@ public class BerkeleyClient extends DB
             env = new Environment(new File("/tmp/berkeley"), envConfig);
             DatabaseConfig dbConfig = new DatabaseConfig();
             dbConfig.setAllowCreate(true);
+            if (defer_writes)
+            {
+                dbConfig.setDeferredWrite(true);
+            }
             db = env.openDatabase(null,
                                   "benchDatabase",
                                   dbConfig);

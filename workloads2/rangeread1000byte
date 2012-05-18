@@ -23,6 +23,8 @@ requestdistribution=uniform
 maxscanlength=50
 scanlengthdistribution=uniform
 
+berkeleydb.deferwrites=false
+
 fieldlength=10
 fieldcount=100
 buffersize=16384

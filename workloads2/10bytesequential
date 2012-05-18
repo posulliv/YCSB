@@ -20,6 +20,8 @@ insertproportion=0
 
 requestdistribution=uniform
 
+berkeleydb.deferwrites=false
+
 fieldlength=10
 fieldcount=1
 buffersize=16384
