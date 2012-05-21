@@ -19,6 +19,8 @@ import com.sleepycat.je.OperationStatus;
 import com.sleepycat.je.Environment;
 import com.sleepycat.je.EnvironmentConfig;
 import com.sleepycat.bind.tuple.IntegerBinding;
+import com.sleepycat.je.Transaction;
+import com.sleepycat.je.Durability;
 
 import com.yahoo.ycsb.DB;
 import com.yahoo.ycsb.DBException;
@@ -39,12 +41,16 @@ public class BerkeleyClient extends DB
     public static final String DEFER_WRITES = "berkeleydb.deferwrites";
     public static final String DEFER_WRITES_DEFAULT = "false";
 
+    public static final String SYNC_POLICY = "berkeleydb.sync";
+    public static final String SYNC_POLICY_DEFAULT = "NO_SYNC";
+
     Environment env = null;
     Database db = null;
     Cursor cursor = null;
 
     Random random;
     boolean verbose;
+    String syncPolicy;
     boolean defer_writes;
     int todelay;
 
@@ -81,6 +87,7 @@ public class BerkeleyClient extends DB
         verbose = Boolean.parseBoolean(props.getProperty(VERBOSE, VERBOSE_DEFAULT));
         todelay = Integer.parseInt(props.getProperty(SIMULATE_DELAY, SIMULATE_DELAY_DEFAULT));
         defer_writes = Boolean.parseBoolean(props.getProperty(DEFER_WRITES, DEFER_WRITES_DEFAULT));
+        syncPolicy = props.getProperty(SYNC_POLICY, SYNC_POLICY_DEFAULT);
 
         if (verbose)
         {
@@ -100,10 +107,15 @@ public class BerkeleyClient extends DB
         try 
         {
             EnvironmentConfig envConfig = new EnvironmentConfig();
+            Durability defaultDur = Durability.parse(syncPolicy);
+            /*Durability defaultDur = new Durability(Durability.SyncPolicy.SYNC_POLICY_DEFAULT,
+                                                   null, null);*/
             envConfig.setAllowCreate(true);
-            //envConfig.setCacheSize(1536000000);
             envConfig.setCachePercent(80);
             envConfig.setConfigParam(EnvironmentConfig.LOG_FILE_MAX, "1000000000");
+            /* make these next 2 configurable */
+            envConfig.setTransactional(true);
+            envConfig.setDurability(defaultDur);
             env = new Environment(new File("/tmp/berkeley"), envConfig);
             DatabaseConfig dbConfig = new DatabaseConfig();
             dbConfig.setAllowCreate(true);
@@ -168,26 +180,33 @@ public class BerkeleyClient extends DB
             System.out.println("]");
         }
 
+        Transaction txn = env.beginTransaction(null, null);
         try
         {
             DatabaseEntry theKey = new DatabaseEntry(key.getBytes("UTF-8"));
             DatabaseEntry theValue = new DatabaseEntry();
             /* retrieve the data */
-            if (db.get(null, theKey, theValue, LockMode.DEFAULT) == OperationStatus.SUCCESS)
+            if (db.get(txn, theKey, theValue, LockMode.DEFAULT) == OperationStatus.SUCCESS)
             {
                 /* re-create string from value */
                 byte[] retData = theValue.getData();
                 String foundData = new String(retData, "UTF-8");
                 result.put("data", new StringByteIterator(foundData));
+                txn.commit();
             }
             else
             {
+                txn.commit();
                 /* the data was not found */
                 return 1;
             }
         }
         catch (Exception e)
         {
+            if (txn != null)
+            {
+                txn.abort();
+            }
             return 1;
         }
 
@@ -216,12 +235,16 @@ public class BerkeleyClient extends DB
             System.out.println("]");
         }
 
+        Transaction txn = env.beginTransaction(null, null);
+        Cursor localCursor = null;
+
         try
         {
+            localCursor = db.openCursor(txn, null);
             DatabaseEntry theKey = new DatabaseEntry(startkey.getBytes("UTF-8"));
             DatabaseEntry theValue = new DatabaseEntry();
             int counter = 0; /* keeps track of how many records we have scanned */
-            while (cursor.getNext(theKey, theValue, LockMode.DEFAULT) == OperationStatus.SUCCESS &&
+            while (localCursor.getNext(theKey, theValue, LockMode.DEFAULT) == OperationStatus.SUCCESS &&
                    counter <= recordcount)
             {
                 /* re-create string from value */
@@ -233,10 +256,19 @@ public class BerkeleyClient extends DB
                 result.add(tuple);
                 counter++;
             }
+            localCursor.close();
+            txn.commit();
         }
         catch (Exception e)
         {
-            cursor.close(); /* must close cursor */
+            if (localCursor != null)
+            {
+                localCursor.close(); /* must close cursor */
+            }
+            if (txn != null)
+            {
+                txn.abort();
+            }
             return 1;
         }
 
@@ -263,12 +295,21 @@ public class BerkeleyClient extends DB
 
         try
         {
+            Transaction txn = env.beginTransaction(null, null);
             DatabaseEntry theKey = new DatabaseEntry(key.getBytes("UTF-8"));
             /* construct the value for this entry in BerkeleyDB */
             String hash_map_string = values.toString();
             DatabaseEntry theValue = new DatabaseEntry(hash_map_string.getBytes("UTF-8"));
-            /* actually insert the data */
-            db.put(null, theKey, theValue);
+            try {
+                /* actually insert the data */
+                db.put(null, theKey, theValue);
+                txn.commit();
+            } catch (Exception e) {
+                if (txn != null) {
+                    txn.abort();
+                }
+                return 1;
+            }
         }
         catch (Exception e)
         {
@@ -298,12 +339,21 @@ public class BerkeleyClient extends DB
 
         try
         {
+            Transaction txn = env.beginTransaction(null, null);
             DatabaseEntry theKey = new DatabaseEntry(key.getBytes("UTF-8"));
             /* construct the value for this entry in BerkeleyDB */
             String hash_map_string = values.toString();
             DatabaseEntry theValue = new DatabaseEntry(hash_map_string.getBytes("UTF-8"));
-            /* actually insert the data */
-            db.put(null, theKey, theValue);
+            try {
+                /* actually insert the data */
+                db.put(null, theKey, theValue);
+                txn.commit();
+            } catch (Exception e) {
+                if (txn != null) {
+                    txn.abort();
+                }
+                return 1;
+            }
         }
         catch (Exception e)
         {
@@ -326,9 +376,18 @@ public class BerkeleyClient extends DB
 
         try
         {
+            Transaction txn = env.beginTransaction(null, null);
             DatabaseEntry theKey = new DatabaseEntry(key.getBytes("UTF-8"));
-            /* actually remove the data */
-            db.delete(null, theKey);
+            try {
+                /* actually remove the data */
+                db.delete(null, theKey);
+                txn.commit();
+            } catch (Exception e) {
+                if (txn != null) {
+                    txn.abort();
+                }
+                return 1;
+            }
         }
         catch (Exception e)
         {
