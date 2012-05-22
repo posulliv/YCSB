@@ -114,8 +114,8 @@ public class BerkeleyClient extends DB
             envConfig.setConfigParam(EnvironmentConfig.LOG_FILE_MAX, "1000000000");
             /* make these next 2 configurable */
             envConfig.setTransactional(true);
-            envConfig.setTxnNoSync(false);
-            envConfig.setTxnWriteNoSync(false);
+            envConfig.setTxnNoSync(true);
+            envConfig.setTxnWriteNoSync(true);
             env = new Environment(new File("/tmp/berkeley"), envConfig);
             DatabaseConfig dbConfig = new DatabaseConfig();
             dbConfig.setAllowCreate(true);
