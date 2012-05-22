@@ -115,7 +115,7 @@ public class BerkeleyClient extends DB
             /* make these next 2 configurable */
             envConfig.setTransactional(true);
             envConfig.setTxnNoSync(true);
-            envConfig.setTxnWriteNoSync(true);
+            //envConfig.setTxnWriteNoSync(true);
             env = new Environment(new File("/tmp/berkeley"), envConfig);
             DatabaseConfig dbConfig = new DatabaseConfig();
             dbConfig.setAllowCreate(true);
