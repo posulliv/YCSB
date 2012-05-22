@@ -107,9 +107,9 @@ public class BerkeleyClient extends DB
         try 
         {
             EnvironmentConfig envConfig = new EnvironmentConfig();
-            Durability defaultDur = Durability.parse(syncPolicy);
-            /*Durability defaultDur = new Durability(Durability.SyncPolicy.SYNC_POLICY_DEFAULT,
-                                                   null, null);*/
+            //Durability defaultDur = Durability.parse(syncPolicy);
+            Durability defaultDur = new Durability(Durability.SyncPolicy.SYNC,
+                                                   null, null);
             envConfig.setAllowCreate(true);
             envConfig.setCachePercent(80);
             envConfig.setConfigParam(EnvironmentConfig.LOG_FILE_MAX, "1000000000");
