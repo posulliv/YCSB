@@ -107,16 +107,15 @@ public class BerkeleyClient extends DB
         try 
         {
             EnvironmentConfig envConfig = new EnvironmentConfig();
-            //Durability defaultDur = Durability.parse(syncPolicy);
-            Durability defaultDur = new Durability(Durability.SyncPolicy.SYNC,
-                                                   null, null);
+           /* Durability defaultDur = new Durability(Durability.SyncPolicy.NO_SYNC,
+                                                   null, null);*/
             envConfig.setAllowCreate(true);
             envConfig.setCachePercent(80);
             envConfig.setConfigParam(EnvironmentConfig.LOG_FILE_MAX, "1000000000");
             /* make these next 2 configurable */
             envConfig.setTransactional(true);
-            //envConfig.setDurability(defaultDur);
-            envConfig.setDurability(defaultDur);
+            envConfig.setTxnNoSync(false);
+            envConfig.setTxnWriteNoSync(false);
             env = new Environment(new File("/tmp/berkeley"), envConfig);
             DatabaseConfig dbConfig = new DatabaseConfig();
             dbConfig.setAllowCreate(true);
