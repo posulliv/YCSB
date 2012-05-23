@@ -302,7 +302,7 @@ public class BerkeleyClient extends DB
             DatabaseEntry theValue = new DatabaseEntry(hash_map_string.getBytes("UTF-8"));
             try {
                 /* actually insert the data */
-                db.put(null, theKey, theValue);
+                db.put(txn, theKey, theValue);
                 txn.commit();
             } catch (Exception e) {
                 if (txn != null) {
