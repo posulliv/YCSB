@@ -38,8 +38,8 @@ public class PersistitClient extends DB
     public static final String EXPLICIT_TRX_DEFAULT = "false";
 
     private Persistit db;
-
     private Exchange exchange;
+    private Transaction txn;
 
     Random random;
     boolean verbose;
@@ -152,7 +152,7 @@ public class PersistitClient extends DB
 
         try
         {
-            Transaction txn = exchange.getTransaction();
+            txn = exchange.getTransaction();
             txn.begin();
             try {
                 exchange.clear().to(key);
@@ -161,6 +161,7 @@ public class PersistitClient extends DB
                 String foundData = exchange.getValue().getString();
                 result.put("data", new StringByteIterator(foundData));
             } catch (RollbackException re) {
+                txn.rollback();
                 return 1; /* rollback is fatal error for benchmark? */
             } finally {
                 txn.end();
@@ -198,7 +199,7 @@ public class PersistitClient extends DB
 
         try
         {
-            Transaction txn = exchange.getTransaction();
+            txn = exchange.getTransaction();
             txn.begin();
             try {
                 exchange.clear().to(startkey);
@@ -214,6 +215,7 @@ public class PersistitClient extends DB
                     counter++;
                 }
             } catch (RollbackException re) {
+                txn.rollback();
                 return 1;
             } finally {
                 txn.end();
@@ -247,7 +249,7 @@ public class PersistitClient extends DB
 
         try
         {
-            Transaction txn = exchange.getTransaction();
+            txn = exchange.getTransaction();
             txn.begin();
             try {
                 exchange.clear().to(key);
@@ -259,6 +261,7 @@ public class PersistitClient extends DB
                 exchange.store();
                 txn.commit();
             } catch (RollbackException re) {
+                txn.rollback();
                 return 1;
             } finally {
                 txn.end();
@@ -293,7 +296,7 @@ public class PersistitClient extends DB
 
         try
         {
-            Transaction txn = exchange.getTransaction();
+            txn = exchange.getTransaction();
             txn.begin();
             try {
                 exchange.clear().to(key);
@@ -305,6 +308,7 @@ public class PersistitClient extends DB
                 exchange.store();
                 txn.commit();
             } catch (RollbackException re) {
+                txn.rollback();
                 return 1;
             } finally {
                 txn.end();
@@ -331,13 +335,14 @@ public class PersistitClient extends DB
 
         try
         {
-            Transaction txn = exchange.getTransaction();
+            txn = exchange.getTransaction();
             txn.begin();
             try {
                 exchange.clear().to(key);
                 exchange.remove();
                 txn.commit();
             } catch (RollbackException re) {
+                txn.rollback();
                 return 1;
             } finally {
                 txn.end();
