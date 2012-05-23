@@ -351,7 +351,7 @@ public class BerkeleyClient extends DB
 
         try
         {
-            Durability dur = new Durability(Durability.SyncPolicy.SYNC, null, null);
+            Durability dur = new Durability(Durability.SyncPolicy.NO_SYNC, null, null);
             TransactionConfig tc = new TransactionConfig();
             tc.setDurability(dur);
             txn = env.beginTransaction(null, tc); 
