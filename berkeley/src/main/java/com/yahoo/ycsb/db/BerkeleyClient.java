@@ -20,6 +20,7 @@ import com.sleepycat.je.Environment;
 import com.sleepycat.je.EnvironmentConfig;
 import com.sleepycat.bind.tuple.IntegerBinding;
 import com.sleepycat.je.Transaction;
+import com.sleepycat.je.TransactionConfig;
 import com.sleepycat.je.Durability;
 
 import com.yahoo.ycsb.DB;
@@ -108,6 +109,8 @@ public class BerkeleyClient extends DB
         try 
         {
             EnvironmentConfig envConfig = new EnvironmentConfig();
+            //Durability dur = new Durability(Durability.SyncPolicy.SYNC, null, null);
+            //envConfig.setDurability(dur);
             envConfig.setAllowCreate(true);
             envConfig.setCachePercent(80);
             envConfig.setConfigParam(EnvironmentConfig.LOG_FILE_MAX, "1000000000");
@@ -115,7 +118,7 @@ public class BerkeleyClient extends DB
             if (true) 
             {
                 envConfig.setTransactional(true);
-                envConfig.setTxnNoSync(true);
+                //envConfig.setTxnNoSync(true);
             }
             env = new Environment(new File("/tmp/berkeley"), envConfig);
             DatabaseConfig dbConfig = new DatabaseConfig();
@@ -348,7 +351,10 @@ public class BerkeleyClient extends DB
 
         try
         {
-            txn = env.beginTransaction(null, null);
+            Durability dur = new Durability(Durability.SyncPolicy.SYNC, null, null);
+            TransactionConfig tc = new TransactionConfig();
+            tc.setDurability(dur);
+            txn = env.beginTransaction(null, tc); 
             DatabaseEntry theKey = new DatabaseEntry(key.getBytes("UTF-8"));
             /* construct the value for this entry in BerkeleyDB */
             String hash_map_string = values.toString();
@@ -368,6 +374,7 @@ public class BerkeleyClient extends DB
         }
         catch (Exception e)
         {
+            e.printStackTrace();
             return 1;
         }
 
