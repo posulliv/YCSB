@@ -46,6 +46,7 @@ public class BerkeleyClient extends DB
 
     Environment env = null;
     Database db = null;
+    Transaction txn = null;
     Cursor cursor = null;
 
     Random random;
@@ -111,16 +112,24 @@ public class BerkeleyClient extends DB
             envConfig.setCachePercent(80);
             envConfig.setConfigParam(EnvironmentConfig.LOG_FILE_MAX, "1000000000");
             /* make these next 2 configurable */
-            envConfig.setTransactional(true);
-            envConfig.setTxnNoSync(true);
+            if (true) 
+            {
+                envConfig.setTransactional(true);
+                envConfig.setTxnNoSync(true);
+            }
             env = new Environment(new File("/tmp/berkeley"), envConfig);
             DatabaseConfig dbConfig = new DatabaseConfig();
             dbConfig.setAllowCreate(true);
+            /* make configurable */
+            if (true) 
+            {
+                dbConfig.setTransactional(true);
+            }
             if (defer_writes)
             {
                 dbConfig.setDeferredWrite(true);
             }
-            db = env.openDatabase(null,
+            db = env.openDatabase(txn,
                                   "benchDatabase",
                                   dbConfig);
             cursor = db.openCursor(null, null);
@@ -177,7 +186,7 @@ public class BerkeleyClient extends DB
             System.out.println("]");
         }
 
-        Transaction txn = env.beginTransaction(null, null);
+        txn = env.beginTransaction(null, null);
         try
         {
             DatabaseEntry theKey = new DatabaseEntry(key.getBytes("UTF-8"));
@@ -203,6 +212,7 @@ public class BerkeleyClient extends DB
             if (txn != null)
             {
                 txn.abort();
+                txn = null;
             }
             return 1;
         }
@@ -232,7 +242,7 @@ public class BerkeleyClient extends DB
             System.out.println("]");
         }
 
-        Transaction txn = env.beginTransaction(null, null);
+        txn = env.beginTransaction(null, null);
         Cursor localCursor = null;
 
         try
@@ -265,6 +275,7 @@ public class BerkeleyClient extends DB
             if (txn != null)
             {
                 txn.abort();
+                txn = null;
             }
             return 1;
         }
@@ -292,7 +303,7 @@ public class BerkeleyClient extends DB
 
         try
         {
-            Transaction txn = env.beginTransaction(null, null);
+            txn = env.beginTransaction(null, null);
             DatabaseEntry theKey = new DatabaseEntry(key.getBytes("UTF-8"));
             /* construct the value for this entry in BerkeleyDB */
             String hash_map_string = values.toString();
@@ -304,6 +315,7 @@ public class BerkeleyClient extends DB
             } catch (Exception e) {
                 if (txn != null) {
                     txn.abort();
+                    txn = null;
                 }
                 return 1;
             }
@@ -336,7 +348,7 @@ public class BerkeleyClient extends DB
 
         try
         {
-            Transaction txn = env.beginTransaction(null, null);
+            txn = env.beginTransaction(null, null);
             DatabaseEntry theKey = new DatabaseEntry(key.getBytes("UTF-8"));
             /* construct the value for this entry in BerkeleyDB */
             String hash_map_string = values.toString();
@@ -348,7 +360,9 @@ public class BerkeleyClient extends DB
             } catch (Exception e) {
                 if (txn != null) {
                     txn.abort();
+                    txn = null;
                 }
+                e.printStackTrace();
                 return 1;
             }
         }
@@ -373,7 +387,7 @@ public class BerkeleyClient extends DB
 
         try
         {
-            Transaction txn = env.beginTransaction(null, null);
+            txn = env.beginTransaction(null, null);
             DatabaseEntry theKey = new DatabaseEntry(key.getBytes("UTF-8"));
             try {
                 /* actually remove the data */
@@ -382,6 +396,7 @@ public class BerkeleyClient extends DB
             } catch (Exception e) {
                 if (txn != null) {
                     txn.abort();
+                    txn = null;
                 }
                 return 1;
             }
