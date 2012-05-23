@@ -107,15 +107,12 @@ public class BerkeleyClient extends DB
         try 
         {
             EnvironmentConfig envConfig = new EnvironmentConfig();
-           /* Durability defaultDur = new Durability(Durability.SyncPolicy.NO_SYNC,
-                                                   null, null);*/
             envConfig.setAllowCreate(true);
             envConfig.setCachePercent(80);
             envConfig.setConfigParam(EnvironmentConfig.LOG_FILE_MAX, "1000000000");
             /* make these next 2 configurable */
             envConfig.setTransactional(true);
             envConfig.setTxnNoSync(true);
-            //envConfig.setTxnWriteNoSync(true);
             env = new Environment(new File("/tmp/berkeley"), envConfig);
             DatabaseConfig dbConfig = new DatabaseConfig();
             dbConfig.setAllowCreate(true);
@@ -346,7 +343,7 @@ public class BerkeleyClient extends DB
             DatabaseEntry theValue = new DatabaseEntry(hash_map_string.getBytes("UTF-8"));
             try {
                 /* actually insert the data */
-                db.put(null, theKey, theValue);
+                db.put(txn, theKey, theValue);
                 txn.commit();
             } catch (Exception e) {
                 if (txn != null) {
