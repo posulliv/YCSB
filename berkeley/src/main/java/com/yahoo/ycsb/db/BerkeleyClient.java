@@ -434,15 +434,15 @@ public class BerkeleyClient extends DB
     private Durability createDurMode() throws Exception
     {
         Durability dur = null;
-        if (syncPolicy == "NO_SYNC")
+        if (syncPolicy.equals("NO_SYNC"))
         {
             dur = new Durability(Durability.SyncPolicy.NO_SYNC, null, null);
         } 
-        else if (syncPolicy == "SYNC")
+        else if (syncPolicy.equals("SYNC"))
         {
             dur = new Durability(Durability.SyncPolicy.SYNC, null, null);
         } 
-        else if (syncPolicy == "WRITE_NO_SYNC")
+        else if (syncPolicy.equals("WRITE_NO_SYNC"))
         {
             dur = new Durability(Durability.SyncPolicy.WRITE_NO_SYNC, null, null);
         }
