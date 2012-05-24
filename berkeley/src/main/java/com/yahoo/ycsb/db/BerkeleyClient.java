@@ -109,16 +109,13 @@ public class BerkeleyClient extends DB
         try 
         {
             EnvironmentConfig envConfig = new EnvironmentConfig();
-            //Durability dur = new Durability(Durability.SyncPolicy.SYNC, null, null);
-            //envConfig.setDurability(dur);
             envConfig.setAllowCreate(true);
             envConfig.setCachePercent(80);
             envConfig.setConfigParam(EnvironmentConfig.LOG_FILE_MAX, "1000000000");
-            /* make these next 2 configurable */
+            /* make configurable */
             if (true) 
             {
                 envConfig.setTransactional(true);
-                //envConfig.setTxnNoSync(true);
             }
             env = new Environment(new File("/tmp/berkeley"), envConfig);
             DatabaseConfig dbConfig = new DatabaseConfig();
@@ -189,9 +186,12 @@ public class BerkeleyClient extends DB
             System.out.println("]");
         }
 
-        txn = env.beginTransaction(null, null);
         try
         {
+            Durability dur = createDurMode();
+            TransactionConfig tc = new TransactionConfig();
+            tc.setDurability(dur);
+            txn = env.beginTransaction(null, tc); 
             DatabaseEntry theKey = new DatabaseEntry(key.getBytes("UTF-8"));
             DatabaseEntry theValue = new DatabaseEntry();
             /* retrieve the data */
@@ -245,7 +245,16 @@ public class BerkeleyClient extends DB
             System.out.println("]");
         }
 
-        txn = env.beginTransaction(null, null);
+        Durability dur = null;
+        try {
+            dur = createDurMode();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return 1;
+        }
+        TransactionConfig tc = new TransactionConfig();
+        tc.setDurability(dur);
+        txn = env.beginTransaction(null, tc); 
         Cursor localCursor = null;
 
         try
@@ -306,7 +315,10 @@ public class BerkeleyClient extends DB
 
         try
         {
-            txn = env.beginTransaction(null, null);
+            Durability dur = createDurMode();
+            TransactionConfig tc = new TransactionConfig();
+            tc.setDurability(dur);
+            txn = env.beginTransaction(null, tc); 
             DatabaseEntry theKey = new DatabaseEntry(key.getBytes("UTF-8"));
             /* construct the value for this entry in BerkeleyDB */
             String hash_map_string = values.toString();
@@ -351,7 +363,7 @@ public class BerkeleyClient extends DB
 
         try
         {
-            Durability dur = new Durability(Durability.SyncPolicy.NO_SYNC, null, null);
+            Durability dur = createDurMode();
             TransactionConfig tc = new TransactionConfig();
             tc.setDurability(dur);
             txn = env.beginTransaction(null, tc); 
@@ -394,11 +406,14 @@ public class BerkeleyClient extends DB
 
         try
         {
-            txn = env.beginTransaction(null, null);
+            Durability dur = createDurMode();
+            TransactionConfig tc = new TransactionConfig();
+            tc.setDurability(dur);
+            txn = env.beginTransaction(null, tc); 
             DatabaseEntry theKey = new DatabaseEntry(key.getBytes("UTF-8"));
             try {
                 /* actually remove the data */
-                db.delete(null, theKey);
+                db.delete(txn, theKey);
                 txn.commit();
             } catch (Exception e) {
                 if (txn != null) {
@@ -414,6 +429,28 @@ public class BerkeleyClient extends DB
         }
 
         return 0;
+    }
+
+    private Durability createDurMode() throws Exception
+    {
+        Durability dur = null;
+        if (syncPolicy == "NO_SYNC")
+        {
+            dur = new Durability(Durability.SyncPolicy.NO_SYNC, null, null);
+        } 
+        else if (syncPolicy == "SYNC")
+        {
+            dur = new Durability(Durability.SyncPolicy.SYNC, null, null);
+        } 
+        else if (syncPolicy == "WRITE_NO_SYNC")
+        {
+            dur = new Durability(Durability.SyncPolicy.WRITE_NO_SYNC, null, null);
+        }
+        else
+        {
+            throw new Exception("Invalid Sync mode specified.");
+        }
+        return dur;
     }
 
 }
