@@ -21,6 +21,7 @@ insertproportion=0
 requestdistribution=uniform
 
 berkeleydb.deferwrites=false
+berkeleydb.sync=NO_SYNC
 
 fieldlength=100
 fieldcount=1

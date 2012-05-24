@@ -24,6 +24,7 @@ maxscanlength=50
 scanlengthdistribution=uniform
 
 berkeleydb.deferwrites=false
+berkeleydb.sync=NO_SYNC
 
 fieldlength=10
 fieldcount=10
